@@ -1,0 +1,75 @@
+{
+  "test001": {
+    "description": "<your description for your new test 1>",
+    "seed": "2",
+    "snake_grows": "0",
+    "key_input": "",
+    "output": {
+      "game_over": 0,
+      "score": 0,
+      "width": 20,
+      "height": 10,
+      "cells": [
+        "XXXXXXXXXXXXXXXXXXXX",
+        "X..................X",
+        "X.?................X",
+        "X..................X",
+        "X..................X",
+        "X..................X",
+        "X..................X",
+        "X..................X",
+        "X..................X",
+        "XXXXXXXXXXXXXXXXXXXX"
+      ]
+    }
+  },
+  "test002": {
+    "description": "<your description for your new test 2>",
+    "seed": "2",
+    "snake_grows": "0",
+    "key_input": "",
+    "output": {
+      "game_over": 0,
+      "score": 0,
+      "width": 20,
+      "height": 10,
+      "cells": [
+        "XXXXXXXXXXXXXXXXXXXX",
+        "X..................X",
+        "X.S................X",
+        "X..................X",
+        "X..................X",
+        "X..................X",
+        "X..................X",
+        "X..................X",
+        "X..................X",
+        "XXXXXXXXXXXXXXXXXXXX"
+      ]
+    }
+  },
+  "test003": {
+    "description": "<your description for your new test 3>",
+    "seed": "2",
+    "snake_grows": "0",
+    "key_input": "NNNN",
+    "output": {
+      "game_over": 0,
+      "score": 0,
+      "width": 20,
+      "height": 10,
+      "cells": [
+        "XXXXXXXXXXXXXXXXXXXX",
+        "X..................X",
+        "X.....S............X",
+        "X..................X",
+        "X..................X",
+        "X..................X",
+        "X..................X",
+        "X..................X",
+        "X..................X",
+        "XXXXXXXXXXXXXXXXXXXX"
+      ]
+    }
+  }
+}
+
