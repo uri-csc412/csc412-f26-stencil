@@ -1,29 +1,79 @@
-CC      := gcc
-CFLAGS  := -std=c11 -Wall -Wextra -O2
-SAN     := -fsanitize=address,undefined -fno-omit-frame-pointer
-LDFLAGS := $(SAN)
-CFLAGS  += $(SAN)
+# Default optimization level
+OPT ?= -O2
 
-all: clean build-example build-tests run-tests
+# Flags
+CXXFLAGS := -std=gnu++1z -W -Wall -Wshadow  -Wno-unused-command-line-argument -g $(OPT) $(DEFS) $(CXXFLAGS)
+LDFLAGS := -no-pie
 
-arena.o: arena.c arena.h
-	$(CC) $(CFLAGS) -c arena.c
+# Make sanitizers available as a compilation option ("make SAN=1")
+#
+# use SAN=1 to turn on all sanitizers (address, leak, undefined behavior)
+#
+# to turn on specific sanitizers, use:
+# - ASAN=1 for the address sanitizer
+# - LSAN=1 for the leak sanitizer
+# - UBSAN=1 for the undefined behavior sanitizer
+-include sanitizers.mk
 
-tests.o: tests.c arena.h
-	$(CC) $(CFLAGS) -c tests.c
+# Get all of the test filenames
+TESTS = $(patsubst %.cc,%,$(sort $(wildcard test[0-9][0-9][0-9].cc)))
 
-build-example:
-	$(CC) $(CFLAGS) -o arena_example main.c arena.c
+all: $(TESTS)
 
-build-tests: tests.o arena.o
-	$(CC) $(CFLAGS) -o tests $^ $(LDFLAGS)
+# Link math library for static functions
 
-run-tests:
-	./tests
+LIBS = -lm
 
-run-example:
-	./arena_example
+# Allow "make V=1" to print verbose compilation output (incl. all commands run)
+ifneq ($(V),1)
+# Define run function, which echoes its second and third argument and then
+# lays its first and third out as a command
+# https://www.gnu.org/software/make/manual/html_node/Call-Function.html
+run = @$(if $(2),/bin/echo "  $(2) $(3)" &&,) $(1) $(3)
+else
+run = $(1) $(3)
+endif
 
-clean:
-	rm -f *.o tests
-	rm -f *.o arena_example
+
+%.o: %.c $(BUILDSTAMP)
+	$(call run,$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $@ -c,COMPILE,$<)
+
+all:
+	@echo "*** Run 'make check' to check your work."
+
+test%: dmalloc.o basealloc.o test%.o
+	$(call run,$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS),LINK $@)
+
+# Check all tests
+check: $(patsubst %,run-%,$(TESTS))
+	@echo "*** All tests succeeded!"
+
+# Check a specific test... don't worry about perl
+check-%:
+	@any=false; good=true; for i in `perl check.pl -e "$*"`; do \
+	    any=true; $(MAKE) run-$$i || good=false; done; \
+	if $$any; then $$good; else echo "*** No such test" 1>&2; $$any; fi
+
+# Run rule .. different than run function!
+run-:
+	@echo "*** No such test" 1>&2; exit 1
+
+run-%: %
+	@test -d out || mkdir out
+	@perl check.pl -x $<
+
+format:
+	clang-format -style=Google -i $(FILES)
+
+
+clean: clean-main
+clean-main:
+	$(call run,rm -f $(TESTS) *.o core *.core,CLEAN)
+	$(call run,rm -rf out *.dSYM $(DEPSDIR))
+
+MALLOC_CHECK_=0
+export MALLOC_CHECK_
+
+.PRECIOUS: %.o
+.PHONY: all clean clean-main format \
+	run run- run% check  check-%
